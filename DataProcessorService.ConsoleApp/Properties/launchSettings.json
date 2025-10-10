@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "DataProcessorService.ConsoleApp": {
+      "commandName": "Project"
+    }  
+  }
+}

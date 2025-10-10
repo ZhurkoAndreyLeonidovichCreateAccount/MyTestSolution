@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "FileParserService.ConsoleApp": {
+      "commandName": "Project"
+    }   
+  }
+}
