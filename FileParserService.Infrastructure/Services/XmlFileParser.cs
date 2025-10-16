@@ -45,11 +45,13 @@ namespace FileParserService.Infrastructure.Services
                         return;
 
                     foreach (var device in instrumentStatus.DeviceStatusList)
-                    {
+                    {                       
+                        var modelState = ExtractModuleState(device.RapidControlStatus);
+                      
                         modules.Add(new Module
                         {
                             ModuleCategoryID = device.ModuleCategoryID,
-                            State = GetRandomState()
+                            State = GetRandomState(modelState)
                         });
                     }
                     _logger.LogInformation("Processed:{Path}", Path.GetFileName(xmlFile));
@@ -62,11 +64,39 @@ namespace FileParserService.Infrastructure.Services
             return modules;
         }
 
-        private ModuleState GetRandomState()
+        private ModuleState GetRandomState(string state)
         {
-            var values = Enum.GetValues(typeof(ModuleState));           
-            return (ModuleState)values.GetValue(_random.Next(values.Length))!;
+            var exluded = (ModuleState)Enum.Parse(typeof(ModuleState), state);
+            var values = Enum.GetValues(typeof(ModuleState)).Cast<ModuleState>();
+            var exludedList = values.Where(x => x != exluded).ToList();
+            return exludedList[_random.Next(exludedList.Count)];          
         }
-      
+     
+        private string? ExtractModuleState(string innerXml)
+        {          
+            innerXml = innerXml
+                .Replace(@"<?xml version=""1.0"" encoding=""utf-16""?>", "")
+                .Trim();
+
+            Type? targetType = null;
+
+            if (innerXml.Contains("CombinedSamplerStatus"))
+                targetType = typeof(CombinedSamplerStatus);
+            else if (innerXml.Contains("CombinedPumpStatus"))
+                targetType = typeof(CombinedPumpStatus);
+            else if (innerXml.Contains("CombinedOvenStatus"))
+                targetType = typeof(CombinedOvenStatus);
+            else
+                return null;
+
+            var serializer = new XmlSerializer(targetType);
+            using var reader = new StringReader(innerXml);
+            var obj = serializer.Deserialize(reader);
+            
+            var prop = targetType.GetProperty("ModuleState");
+          
+            return prop?.GetValue(obj)?.ToString();
+        }
+
     }
 }

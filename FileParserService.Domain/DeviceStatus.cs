@@ -6,5 +6,9 @@ namespace FileParserService.Domain
     {
         [XmlElement("ModuleCategoryID")]
         public string ModuleCategoryID { get; set; } = string.Empty;
+
+        [XmlElement("RapidControlStatus")]
+        public string RapidControlStatus { get; set; } = string.Empty;
+      
     }
 }
